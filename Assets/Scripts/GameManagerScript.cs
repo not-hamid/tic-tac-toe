@@ -1,13 +1,15 @@
 using System.Xml.Schema;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class GameManagerScript : MonoBehaviour
 {
     private int playerNo;
-    private int[] board = { -1, -1, -1, -1, -1, -1, -1, -1, -1};
+    private int[] board = { -1, -1, -1, -1, -1, -1, -1, -1, -1 };
 
     public Button[] cells;
+    public GameObject[] resultPanel, playerWinShow, winLineShow;
 
     public void SelectCell(int index)
     {
@@ -16,13 +18,18 @@ public class GameManagerScript : MonoBehaviour
         cells[index].transform.GetChild(playerNo).gameObject.SetActive(true);
         cells[index].interactable = false;
 
-        if (checkWin(playerNo))
+        int winIndex = checkWin(playerNo);
+        if (winIndex != -1)
         {
-            Debug.Log("player " + playerNo + " won");
+            resultPanel[1].SetActive(true);
+            playerWinShow[playerNo].SetActive(true);
+            winLineShow[winIndex].SetActive(true);
+            return;
         }
+
         if (checkDraw())
         {
-            Debug.Log("dra3w");
+            resultPanel[0].SetActive(true);
         }
 
         playerNo++;
@@ -35,28 +42,40 @@ public class GameManagerScript : MonoBehaviour
         new int[] {3, 4, 5},
         new int[] {6, 7, 8},
         new int[] {0, 3, 6},
-        new int[] {2, 5, 8},
         new int[] {1, 4, 7},
-        new int[] {2, 4, 6},
+        new int[] {2, 5, 8},
         new int[] {0, 4, 8},
+        new int[] {2, 4, 6},
     };
 
-    private bool checkWin(int playerIndex)
+    private int checkWin(int playerIndex)
     {
-        foreach(var conditon in winConditions)
+        for (int i = 0; i < winConditions.Length; i++)
         {
-            if(board[conditon[0]] == playerIndex && board[conditon[1]] == playerIndex && board[conditon[2]] == playerIndex)
-                return true;
+            int[] condition = winConditions[i];
+            if (board[condition[0]] == playerIndex &&
+                board[condition[1]] == playerIndex &&
+                board[condition[2]] == playerIndex)
+            {
+                return i;
+            }
         }
-        return false;
+        return -1;
     }
 
     private bool checkDraw()
     {
-        foreach(int cell in board)
+        foreach (int cell in board)
         {
             if (cell == -1) return false;
         }
         return true;
+    }
+
+    public void playAgain()
+    {
+        PlayerPrefs.SetInt("flagged", 1);
+        PlayerPrefs.Save();
+        SceneManager.LoadScene(0);
     }
 }
